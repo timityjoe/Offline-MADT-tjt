@@ -26,4 +26,5 @@ The offline smac dataset for this repo is available at [here](https://reinholdm.
 3. set hyper-parameters in `run_madt_sc2.py` line 19-49 according to appendix.
 4. select a maps to test in `envs/config.py` line 142
 5. run the `run_madt_sc2.py` script
+'python3 sc2/run_madt_sc2.py'
 
