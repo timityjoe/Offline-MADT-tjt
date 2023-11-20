@@ -14,9 +14,13 @@ Contains scripts to reproduce experiments.
 
 It may be necessary to add the respective directories to your PYTHONPATH.
 
-The offline smac dataset for this repo is available at [here](https://reinholdm.cowtransfer.com/s/7c8545dca1e043).
+The offline smac dataset for this repo is available at [here](https://reinholdm.cowtransfer.com/s/7c8545dca1e043), expired.
 ```shell
 ## password is xvsma7
+```
+
+```shell
+New download link [here](https://cowtransfer.com/s/3785a6a9e5d044)
 ```
 
 ## How to run experiments
@@ -26,5 +30,15 @@ The offline smac dataset for this repo is available at [here](https://reinholdm.
 3. set hyper-parameters in `run_madt_sc2.py` line 19-49 according to appendix.
 4. select a maps to test in `envs/config.py` line 142
 5. run the `run_madt_sc2.py` script
-'python3 sc2/run_madt_sc2.py'
+
+```bash
+pip install torch torchvision torchaudio --extra-index-url https://download.pytorch.org/whl/cu113^C
+pip install -r requirements.txt
+pip install pyOpenSSL --upgrade
+pip install --upgrade pip
+
+python3 run_madt_sc2.py
+python3 sc2/run_madt_sc2.py
+```
+
 

@@ -79,7 +79,7 @@ some-package
 tabulate
 tb-nightly
 # tensorboard-plugin-wit
-# tensorboardX
+tensorboardX
 termcolor
 threadpoolctl
 toml

@@ -27,13 +27,10 @@ parser.add_argument('--save_log', type=bool, default=True)
 parser.add_argument('--exp_name', type=str, default='easy_trans')
 parser.add_argument('--pre_train_model_path', type=str, default='../../offline_model/')
 
-# parser.add_argument('--offline_map_lists', type=list, default=['3s_vs_4z', '2m_vs_1z', '3m', '2s_vs_1sc', '3s_vs_3z'])
-parser.add_argument('--offline_map_lists', type=list, default=['3s_vs_4z_splited', '2m_vs_1z_splited', '3m_splited', '2s_vs_1sc_splited', '3s_vs_3z_splited'])
+parser.add_argument('--offline_map_lists', type=list, default=['3s_vs_4z', '2m_vs_1z', '3m', '2s_vs_1sc', '3s_vs_3z'])
 parser.add_argument('--offline_episode_num', type=list, default=[200, 200, 200, 200, 200])
 parser.add_argument('--offline_data_quality', type=list, default=['good'])
-
-# parser.add_argument('--offline_data_dir', type=str, default='../../offline_data/')
-parser.add_argument('--offline_data_dir', type=str, default='offline_data/')
+parser.add_argument('--offline_data_dir', type=str, default='../../offline_data/')
 
 parser.add_argument('--offline_epochs', type=int, default=10)
 parser.add_argument('--offline_mini_batch_size', type=int, default=128)
@@ -105,7 +102,7 @@ for map_name in args.offline_map_lists:
 # '../../offline_data/3m/good/', 
 # '../../offline_data/2s_vs_1sc/good/', 
 # '../../offline_data/3s_vs_3z/good/']
-# print(f"Loading offline data from used_data_dir:{used_data_dir}")
+print(f"Loading offline data from used_data_dir:{used_data_dir}")
 
 buffer.load_offline_data(used_data_dir, args.offline_episode_num, max_epi_length=eval_env.max_timestep)
 offline_dataset = buffer.sample()

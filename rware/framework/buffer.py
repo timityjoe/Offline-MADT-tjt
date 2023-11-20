@@ -139,11 +139,11 @@ class ReplayBuffer:
     def load_offline_data(self, data_dir, offline_episode_num, max_epi_length=400):
         for j in range(len(data_dir)):
             path_files = glob.glob(pathname=data_dir[j] + "*")
-            # print(f"   path_files:{path_files}")
+            print(f"   path_files:{path_files}")
 
             # for file in sorted(path_files):
             for i in range(offline_episode_num[j]):
-                # print(f"    i:{i} path_files[i]:{path_files[i]}")
+                print(f"    i:{i} path_files[i]:{path_files[i]}")
                 episode = torch.load(path_files[i])
 
                 # if len(episode[0]) > max_epi_length:
