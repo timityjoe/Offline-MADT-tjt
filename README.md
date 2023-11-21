@@ -38,7 +38,7 @@ pip install pyOpenSSL --upgrade
 pip install --upgrade pip
 
 python3 run_madt_sc2.py
-python3 sc2/run_madt_sc2.py
+python3 run_madt_sc2.py --offline_epochs 1 
 ```
 
 

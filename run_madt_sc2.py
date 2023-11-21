@@ -15,6 +15,12 @@ from datetime import datetime, timedelta
 from models.gpt_model import GPT, GPTConfig
 # from models.mlp_model import GPT, GPTConfig
 
+from loguru import logger
+# logger.remove()
+# logger.add(sys.stdout, level="INFO")
+# logger.add(sys.stdout, level="SUCCESS")
+# logger.add(sys.stdout, level="WARNING")
+
 # args = sys.argv[1:]
 parser = argparse.ArgumentParser()
 parser.add_argument('--seed', type=int, default=123)
@@ -25,7 +31,8 @@ parser.add_argument('--max_timestep', type=int, default=400)
 parser.add_argument('--log_dir', type=str, default='./logs/')
 parser.add_argument('--save_log', type=bool, default=True)
 parser.add_argument('--exp_name', type=str, default='easy_trans')
-parser.add_argument('--pre_train_model_path', type=str, default='../../offline_model/')
+# parser.add_argument('--pre_train_model_path', type=str, default='../../offline_model/')
+parser.add_argument('--pre_train_model_path', type=str, default='offline_model/')
 
 # parser.add_argument('--offline_map_lists', type=list, default=['3s_vs_4z', '2m_vs_1z', '3m', '2s_vs_1sc', '3s_vs_3z'])
 parser.add_argument('--offline_map_lists', type=list, default=['3s_vs_4z_splited', '2m_vs_1z_splited', '3m_splited', '2s_vs_1sc_splited', '3s_vs_3z_splited'])
@@ -53,8 +60,15 @@ parser.add_argument('--online_pre_train_model_id', type=int, default=9)
 
 # args = parser.parse_args(args, parser)
 args = parser.parse_args()
+logger.info(args)
 set_seed(args.seed)
-torch.set_num_threads(8)
+
+# 0) Set num threads
+# torch.set_num_threads(8)
+# num_threads = 8
+num_threads = 1
+torch.set_num_threads(num_threads)
+logger.info(f"0) Set num threads num_threads:{num_threads}")
 
 cur_time = datetime.now() + timedelta(hours=0)
 args.log_dir += cur_time.strftime("[%m-%d]%H.%M.%S")
@@ -62,6 +76,8 @@ writter = SummaryWriter(args.log_dir) if args.save_log else None
 
 eval_env = Env(args.eval_episodes)
 online_train_env = Env(args.online_buffer_size)
+logger.info(f"eval_env:{eval_env} ")
+logger.info(f"online_train_env:{online_train_env} ")
 
 # global_obs_dim = get_dim_from_space(online_train_env.real_env.share_observation_space)
 # local_obs_dim = get_dim_from_space(online_train_env.real_env.observation_space)
@@ -72,10 +88,14 @@ action_dim = 10
 
 block_size = args.context_length * 3
 
-print("global_obs_dim: ", global_obs_dim)
-print("local_obs_dim: ", local_obs_dim)
-print("action_dim: ", action_dim)
+logger.info(f"global_obs_dim:{global_obs_dim} ")
+logger.info(f"local_obs_dim:{local_obs_dim} ")
+logger.info(f"action_dim:{action_dim} ")
+logger.info(f"block_size:{block_size} ")
 
+
+# 1) Setup GPT Transformer
+logger.info("1) Setup GPT Transformer: ")
 mconf_actor = GPTConfig(local_obs_dim, action_dim, block_size,
                         n_layer=2, n_head=2, n_embd=32, model_type=args.model_type, max_timestep=args.max_timestep)
 model = GPT(mconf_actor, model_type='actor')
@@ -83,13 +103,19 @@ model = GPT(mconf_actor, model_type='actor')
 mconf_critic = GPTConfig(global_obs_dim, action_dim, block_size,
                          n_layer=2, n_head=2, n_embd=32, model_type=args.model_type, max_timestep=args.max_timestep)
 critic_model = GPT(mconf_critic, model_type='critic')
+
+# 2) Setup CPU/GPU
+logger.info("2) Setup CPU/GPU: ")
 device = 'cpu'
 if torch.cuda.is_available():
-    print("torch.cuda.is_available, using GPU...")
+    logger.info("   torch.cuda.is_available, using GPU...")
     device = torch.cuda.current_device()
     model = torch.nn.DataParallel(model).to(device)
     critic_model = torch.nn.DataParallel(critic_model).to(device)
 
+
+# 3) Setup ReplayBuffer & RolloutWorker
+logger.info("3) Setup ReplayBuffer & RolloutWorker: ")
 buffer = ReplayBuffer(block_size, global_obs_dim, local_obs_dim, action_dim)
 rollout_worker = RolloutWorker(model, critic_model, buffer, global_obs_dim, local_obs_dim, action_dim)
 
@@ -105,19 +131,23 @@ for map_name in args.offline_map_lists:
 # '../../offline_data/3m/good/', 
 # '../../offline_data/2s_vs_1sc/good/', 
 # '../../offline_data/3s_vs_3z/good/']
-# print(f"Loading offline data from used_data_dir:{used_data_dir}")
 
+# 4) Setup offline_data_dir
+logger.info(f"4) Loading offline data from used_data_dir:{used_data_dir}")
 buffer.load_offline_data(used_data_dir, args.offline_episode_num, max_epi_length=eval_env.max_timestep)
 offline_dataset = buffer.sample()
 offline_dataset.stats()
 
+# 5) Setup offline trainer
+logger.info(f"5) Setup offline trainer ")
 offline_tconf = TrainerConfig(max_epochs=1, batch_size=args.offline_mini_batch_size, learning_rate=args.offline_lr,
                               num_workers=0, mode="offline")
 offline_trainer = Trainer(model, critic_model, offline_tconf)
 
+# 6) Evaluate offline epochs
 # target_rtgs = offline_dataset.max_rtgs
 target_rtgs = 20.
-print("offline target_rtgs: ", target_rtgs)
+logger.info(f"6) Evaluate offline epochs:{args.offline_epochs} offline target_rtgs:{target_rtgs}")
 for i in range(args.offline_epochs):
     offline_actor_loss, offline_critic_loss, _, __, ___ = offline_trainer.train(offline_dataset,
                                                                                 args.offline_train_critic)
@@ -126,7 +156,7 @@ for i in range(args.offline_epochs):
         writter.add_scalar('offline/{args.map_name}/offline_critic_loss', offline_critic_loss, i)
     if i % args.offline_eval_interval == 0:
         aver_return, aver_win_rate, _ = rollout_worker.rollout(eval_env, target_rtgs, train=False)
-        print("offline epoch: %s, return: %s, eval_win_rate: %s" % (i, aver_return, aver_win_rate))
+        logger.info("offline epoch: %s, return: %s, eval_win_rate: %s" % (i, aver_return, aver_win_rate))
         if args.save_log:
             writter.add_scalar('offline/{args.map_name}/aver_return', aver_return.item(), i)
             writter.add_scalar('offline/{args.map_name}/aver_win_rate', aver_win_rate, i)
@@ -147,11 +177,14 @@ if args.online_epochs > 0 and args.online_pre_train_model_load:
     model.load_state_dict(torch.load(actor_path))
     critic_model.load_state_dict(torch.load(critic_path))
 
+
 online_tconf = TrainerConfig(max_epochs=args.online_ppo_epochs, batch_size=0,
                              learning_rate=args.online_lr, num_workers=0, mode="online")
 online_trainer = Trainer(model, critic_model, online_tconf)
 buffer.reset(num_keep=0, buffer_size=args.online_buffer_size)
 
+# 7) Evaluate online epochs
+logger.info(f"7) Evaluate online_epochs:{args.online_epochs}")
 total_steps = 0
 for i in range(args.online_epochs):
     sample_return, _, steps = rollout_worker.rollout(online_train_env, target_rtgs, train=True)
@@ -169,13 +202,16 @@ for i in range(args.online_epochs):
 
     # if online_dataset.max_rtgs > target_rtgs:
     #     target_rtgs = online_dataset.max_rtgs
-    print("sample return: %s, online target_rtgs: %s" % (sample_return, target_rtgs))
+    logger.info("sample return: %s, online target_rtgs: %s" % (sample_return, target_rtgs))
     if i % args.online_eval_interval == 0:
         aver_return, aver_win_rate, _ = rollout_worker.rollout(eval_env, target_rtgs, train=False)
-        print("online steps: %s, return: %s, eval_win_rate: %s" % (total_steps, aver_return, aver_win_rate))
+        logger.info("online steps: %s, return: %s, eval_win_rate: %s" % (total_steps, aver_return, aver_win_rate))
         if args.save_log:
             writter.add_scalar('online/{args.map_name}/aver_return', aver_return.item(), total_steps)
             writter.add_scalar('online/{args.map_name}/aver_win_rate', aver_win_rate, total_steps)
+
+# 8) Done!
+logger.info(f"8) Done! ")
 
 online_train_env.real_env.close()
 eval_env.real_env.close()
