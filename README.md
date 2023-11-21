@@ -38,7 +38,12 @@ pip install pyOpenSSL --upgrade
 pip install --upgrade pip
 
 python3 run_madt_sc2.py
-python3 run_madt_sc2.py --offline_epochs 1 
+python3 run_madt_sc2.py --offline_epochs 1
+python3 run_madt_sc2.py --offline_epochs 10
+
+python3 run_rware.py
+python3 run_rware.py --eval_episodes 1
+python3 run_rware.py --eval_episodes 32
 ```
 
 

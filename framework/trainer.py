@@ -11,6 +11,11 @@ from torch.nn import functional as F
 from torch.utils.data.dataloader import DataLoader
 from torch.distributions import Categorical
 
+from loguru import logger
+# logger.remove()
+# logger.add(sys.stdout, level="INFO")
+# logger.add(sys.stdout, level="SUCCESS")
+# logger.add(sys.stdout, level="WARNING")
 
 class TrainerConfig:
     # optimization parameters
@@ -39,6 +44,8 @@ class Trainer:
         self.device = 'cpu'
         if torch.cuda.is_available():
             self.device = torch.cuda.current_device()
+            logger.info(f"   Cuda available, device:{self.device}")
+
         self.raw_model = self.model.module if hasattr(self.model, "module") else self.model
         self.optimizer = self.raw_model.configure_optimizers(config, config.learning_rate)
 
@@ -53,6 +60,8 @@ class Trainer:
         def run_epoch():
             model.train(True)
             critic_model.train(True)
+            logger.info(f"self.config.mode:{self.config.mode}")
+
             if self.config.mode == "offline":
                 loader = DataLoader(dataset, shuffle=True, pin_memory=True, drop_last=True,
                                     batch_size=config.batch_size,

@@ -3,6 +3,11 @@ from .starcraft2.smac_maps import get_map_params
 from .config import get_config
 from .env_wrappers import ShareSubprocVecEnv
 
+from loguru import logger
+# logger.remove()
+# logger.add(sys.stdout, level="INFO")
+# logger.add(sys.stdout, level="SUCCESS")
+# logger.add(sys.stdout, level="WARNING")
 
 def make_eval_env(all_args, n_threads=1):
     def get_env_fn(rank):
@@ -24,6 +29,9 @@ class Env:
     def __init__(self, n_threads=1):
         parser = get_config()
         all_args = parser.parse_known_args()[0]
+
+        logger.info(all_args)
+
         self.real_env = make_eval_env(all_args, n_threads)
         self.num_agents = get_map_params(all_args.map_name)["n_agents"]
         self.max_timestep = get_map_params(all_args.map_name)["limit"]

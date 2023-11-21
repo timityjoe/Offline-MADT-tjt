@@ -1,5 +1,25 @@
 import argparse
 
+def get_rware_config():
+    parser = argparse.ArgumentParser(
+        description='onpolicy', formatter_class=argparse.RawDescriptionHelpFormatter)
+    
+    parser.add_argument("--env_name", type=str, default='RWARE', help="specify the name of environment")
+    parser.add_argument("--seed", type=int, default=1, help="Random seed for numpy/torch")
+
+    # RWARE environment
+    parser.add_argument('--shelf_columns', type=int, default=3, help="shelf_columns only odd numbers supported")
+    parser.add_argument('--column_height', type=int, default=4, help="column_height")
+    parser.add_argument('--shelf_rows', type=int, default=1, help="shelf_rows")
+
+    parser.add_argument('--num_agents', type=int, default=1, help="num_agents")
+
+    parser.add_argument('--max_steps', type=int, default=500, help="num_agents")
+    parser.add_argument('--reward_type', type=int, default=0, help="enum")
+    parser.add_argument("--layout", type=str, default='', help="string")
+    parser.add_argument("--observation_type", type=int, default=1, help="enum")
+
+    return parser
 
 def get_config():
     parser = argparse.ArgumentParser(
@@ -28,7 +48,9 @@ def get_config():
     parser.add_argument("--use_wandb", action='store_true', default=True, help="[for wandb usage], by default True, will log date to wandb server. or else will use tensorboard to log data.")
 
     # env parameters
-    parser.add_argument("--env_name", type=str, default='StarCraft2', help="specify the name of environment")
+    # parser.add_argument("--env_name", type=str, default='StarCraft2', help="specify the name of environment")
+    parser.add_argument("--env_name", type=str, default='RWARE', help="specify the name of environment")
+
     parser.add_argument("--use_obs_instead_of_state", action='store_true',
                         default=False, help="Whether to use global state or concatenated obs")
 
@@ -131,24 +153,26 @@ def get_config():
 
     # render parameters
     parser.add_argument("--save_gifs", action='store_true', default=False, help="by default, do not save render video. If set, save video.")
-    parser.add_argument("--use_render", action='store_true', default=False, help="by default, do not render the env during training. If set, start render. Note: something, the environment has internal render process which is not controlled by this hyperparam.")
+    # parser.add_argument("--use_render", 
+    #                     action='store_true', default=False, help="by default, do not render the env during training. If set, start render. Note: something, the environment has internal render process which is not controlled by this hyperparam.")
+    parser.add_argument("--use_render", 
+                        action='store_true', default=True, help="by default, do not render the env during training. If set, start render. Note: something, the environment has internal render process which is not controlled by this hyperparam.")
+    
     parser.add_argument("--render_episodes", type=int, default=5, help="the number of episodes to render a given env")
     parser.add_argument("--ifi", type=float, default=0.1, help="the play interval of each rendered image in saved video.")
 
     # pretrained parameters
     parser.add_argument("--model_dir", type=str, default=None, help="by default None. set the path to pretrained model.")
 
-    # StarCraftII environment
-    parser.add_argument('--map_name', type=str, default='3s_vs_4z', help="Which smac map to run on")
-    parser.add_argument("--add_move_state", action='store_true', default=False)
-    parser.add_argument("--add_local_obs", action='store_true', default=False)
-    parser.add_argument("--add_distance_state", action='store_true', default=False)
-    parser.add_argument("--add_enemy_action_state", action='store_true', default=False)
-    parser.add_argument("--add_agent_id", action='store_true', default=True)
-    parser.add_argument("--add_visible_state", action='store_true', default=False)
-    parser.add_argument("--add_xy_state", action='store_true', default=False)
-    parser.add_argument("--use_state_agent", action='store_true', default=True)
-    parser.add_argument("--use_mustalive", action='store_false', default=True)
-    parser.add_argument("--add_center_xy", action='store_true', default=True)
+    # RWARE environment
+    # parser.add_argument('--shelf_columns', type=int, default=3, help="shelf_columns only odd numbers supported")
+    # parser.add_argument('--column_height', type=int, default=4, help="column_height")
+    # parser.add_argument('--shelf_rows', type=int, default=1, help="shelf_rows")
+    # parser.add_argument('--num_agents', type=int, default=5, help="num_agents")
+    # parser.add_argument('--max_steps', type=int, default=500, help="num_agents")
+    # parser.add_argument('--reward_type', type=int, default=0, help="enum")
+    # parser.add_argument("--layout", type=str, default='', help="string")
+    # parser.add_argument("--observation_type", type=int, default=1, help="enum")
+
 
     return parser

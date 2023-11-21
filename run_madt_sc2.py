@@ -8,7 +8,7 @@ from tensorboardX.writer import SummaryWriter
 from framework.utils import set_seed
 from framework.trainer import Trainer, TrainerConfig
 from framework.utils import get_dim_from_space
-from envs.env import Env
+from envs.env_sc2 import Env
 from framework.buffer import ReplayBuffer
 from framework.rollout import RolloutWorker
 from datetime import datetime, timedelta
@@ -170,7 +170,8 @@ for i in range(args.offline_epochs):
         torch.save(model.state_dict(), actor_path + os.sep + str(i) + '.pkl')
         torch.save(critic_model.state_dict(), critic_path + os.sep + str(i) + '.pkl')
 
-
+# 7a) Setup online epochs
+logger.info(f"7a) Setup online epochs")
 if args.online_epochs > 0 and args.online_pre_train_model_load:
     actor_path = args.pre_train_model_path + args.exp_name + '/actor/' + str(args.online_pre_train_model_id) + '.pkl'
     critic_path = args.pre_train_model_path + args.exp_name + '/critic/' + str(args.online_pre_train_model_id) + '.pkl'
@@ -183,8 +184,8 @@ online_tconf = TrainerConfig(max_epochs=args.online_ppo_epochs, batch_size=0,
 online_trainer = Trainer(model, critic_model, online_tconf)
 buffer.reset(num_keep=0, buffer_size=args.online_buffer_size)
 
-# 7) Evaluate online epochs
-logger.info(f"7) Evaluate online_epochs:{args.online_epochs}")
+# 7b) Evaluate online epochs
+logger.info(f"7b) Evaluate online_epochs:{args.online_epochs}")
 total_steps = 0
 for i in range(args.online_epochs):
     sample_return, _, steps = rollout_worker.rollout(online_train_env, target_rtgs, train=True)
