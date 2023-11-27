@@ -40,7 +40,7 @@ mock
 mpyq
 mujoco-py
 ninja
-numpy==1.20.0
+numpy==1.21.0
 opencv-python
 ordered-set
 packaging

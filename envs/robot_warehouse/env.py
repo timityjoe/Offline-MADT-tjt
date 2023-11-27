@@ -50,7 +50,11 @@ from envs.robot_warehouse.viewer import RobotWarehouseViewer
 
 from gym.spaces import Discrete
 
-
+from loguru import logger
+# logger.remove()
+# logger.add(sys.stdout, level="INFO")
+# logger.add(sys.stdout, level="SUCCESS")
+# logger.add(sys.stdout, level="WARNING")
 
 class RobotWarehouse(Environment[State]):
     """A JAX implementation of the 'Robotic warehouse' environment:
@@ -198,7 +202,7 @@ class RobotWarehouse(Environment[State]):
         self.observation_space = []
         self.share_observation_space = []
         for i in range(self.n_agents):
-            self.action_space.append(Discrete(self.n_actions))
+            # self.action_space.append(Discrete(self.n_actions))
             self.observation_space.append(self.get_obs_size())
             self.share_observation_space.append(self.get_state_size())
 
@@ -375,7 +379,7 @@ class RobotWarehouse(Environment[State]):
             (self.num_agents, 5), bool, False, True, "action_mask"
         )
         step_count = specs.BoundedArray((), jnp.int32, 0, self.time_limit, "step_count")
-        return specs.Spec(
+        value = specs.Spec(
             Observation,
             "ObservationSpec",
             agents_view=agents_view,
@@ -383,15 +387,23 @@ class RobotWarehouse(Environment[State]):
             step_count=step_count,
         )
 
+        logger.info(f"observation_spec():{value}")
+
+        return value
+
     def action_spec(self) -> specs.MultiDiscreteArray:
         """Returns the action spec. 5 actions: [0,1,2,3,4] -> [No Op, Forward, Left, Right, Toggle_load].
         Since this is a multi-agent environment, the environment expects an array of actions.
         This array is of shape (num_agents,).
         """
-        return specs.MultiDiscreteArray(
+        value = specs.MultiDiscreteArray(
             num_values=jnp.array([len(Action)] * self.num_agents, jnp.int32),
             name="action",
         )
+
+        logger.info(f"action_spec():{value}")
+
+        return value
 
     def _make_observations(
         self,

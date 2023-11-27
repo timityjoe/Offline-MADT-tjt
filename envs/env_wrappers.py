@@ -167,9 +167,18 @@ def shareworker(remote, parent_remote, env_fn_wrapper):
                     ob, s_ob, available_actions = env.reset()
 
             remote.send((ob, s_ob, reward, done, info, available_actions))
+
+        # Mod by Tim: For JAX JIT implementation of robotic_warehouse
+        # See robotic_warehouse/env.py L135
+        # elif cmd == 'reset':
+        #     ob, s_ob, available_actions = env.reset()
+        #     remote.send((ob, s_ob, available_actions))
         elif cmd == 'reset':
-            ob, s_ob, available_actions = env.reset()
+            key = jax.random.PRNGKey(0)
+            ob, s_ob, available_actions = = jax.jit(env.reset)(key)
             remote.send((ob, s_ob, available_actions))
+
+
         elif cmd == 'reset_task':
             ob = env.reset_task()
             remote.send(ob)
