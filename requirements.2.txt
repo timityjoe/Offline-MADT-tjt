@@ -32,7 +32,7 @@ Jinja2
 joblib
 kiwisolver
 MarkupSafe
-matplotlib
+matplotlib==3.8.2
 matplotlib-inline
 mkl-fft
 mkl-service
@@ -93,3 +93,6 @@ websocket-client
 whichcraft
 yarg
 yaspin
+chex
+dm-env>=1.5
+

@@ -723,10 +723,11 @@ class Warehouse(MultiAgentEnv):
         return_val = tuple([self._make_obs(agent) for agent in self.agents])
         logger.info(f"num_agents:{len(self.agents)} return_val:{return_val}")
 
+        # Create and return tuple in the form
+        # local_obs, global_state, available_actions = env.reset()
+        # See env_wrappers.py L169
+
         return 
-        # for s in self.shelfs:
-        #     self.grid[0, s.y, s.x] = 1
-        # print(self.grid[0])
 
     def step(
         self, actions: List[Action]

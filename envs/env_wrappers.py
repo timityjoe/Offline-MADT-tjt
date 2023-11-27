@@ -149,7 +149,9 @@ class ShareVecEnv(ABC):
             self.viewer = rendering.SimpleImageViewer()
         return self.viewer
 
-
+# Return template is:
+# local_obs (ob), global_state (s_ob), reward, done, info, available_actions = env.step(data)
+# local_obs (ob), global_state (s_ob), available_actions = env.reset()
 def shareworker(remote, parent_remote, env_fn_wrapper):
     parent_remote.close()
     env = env_fn_wrapper.x()
